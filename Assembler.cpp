@@ -269,6 +269,8 @@ vector<int> Assembler::assemble()
     map<string, bool> existing_labels;  //bool to check whether label exists
     map<int, string> marked_address; //not yet defined label location
     
+    //load from label
+    
     for (int i = 0; i < tokens.size(); i++) {
         
         bool dests_filled = false;
@@ -496,7 +498,13 @@ vector<int> Assembler::assemble()
                         }
                         else {
                             byte_code.push_back(0x101FF10);      //PC+1
+                            local_address++;
                             marked_address[local_address] = instruction_in[j].ascii;
+                            byte_code.push_back(0x0000000);
+                            destination_regs.push_back(0);
+                            source_regs.push_back(0);
+                            source_regs.push_back(0);
+                            local_address++;
                         }
                     }
                     else {

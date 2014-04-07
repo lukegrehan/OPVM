@@ -15,6 +15,7 @@ Intepreter::Intepreter(vector<int> byte_code, int memory_size)
         this->memory[i] = byte_code[i];
     }
     this->PC = 0;
+    this->NZCV = 0;
 }
 Intepreter::Intepreter(vector<int> byte_code, int PC_init, int memory_size)
 {
@@ -23,6 +24,7 @@ Intepreter::Intepreter(vector<int> byte_code, int PC_init, int memory_size)
         this->memory[i] = byte_code[i];
     }
     this->PC = PC_init;
+    this->NZCV = 0;
 }
 
 void Intepreter::evaluate()
@@ -34,7 +36,7 @@ void Intepreter::evaluate()
         previous_PC2 = PC;
         step();
         print();
-        sleep(1);
+        //sleep(1);
     }
 }
 
@@ -99,8 +101,10 @@ int& Intepreter::get_register(char reg)
 void Intepreter::op_mov(int destination, int source1, int source2, bool immidiate)
 {
     if (immidiate) {
-        int value = source1 & 0xF << 4;
-        value += source2;
+        int value = 0;
+        value += (source1 & 0xF) << 4;
+        value += (source2 & 0xF);
+
         get_register(destination) = value;
     }
     else {
@@ -362,6 +366,7 @@ void Intepreter::op_cmp(int destination, int source1, int source2, bool immidiat
         temp = get_register(source2);
     }
     r = get_register(destination) - temp;
+    this->NZCV = 0;
     if (r == 0) {
         this->NZCV = this->NZCV | 0x4;
     }
@@ -387,7 +392,7 @@ void Intepreter::op_break(int destination, int source1, int source2, bool immidi
         this->PC += branch_offset - 1;
     }
     else {
-        this->PC += this->memory[this->PC-1] - 1;
+        this->PC = this->memory[this->PC-1] - 1;
     }
 }
 void Intepreter::op_load(int destination, int source1, int source2, bool immidiate)
@@ -651,6 +656,11 @@ void Intepreter::step()
                     break;
                 case CONDITION_NE:
                     op_mov(instruction_register.destination, instruction_register.source1, instruction_register.source2, instruction_register.I);
+                    break;
+                case CONDITION_GT:
+                    if (!(this->NZCV & 0x8)) {
+                        op_break(instruction_register.destination, instruction_register.source1, instruction_register.source2, instruction_register.I);
+                    }
                     break;
                 default:
                     break;

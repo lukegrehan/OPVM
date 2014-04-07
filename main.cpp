@@ -53,6 +53,7 @@ using namespace std;
 //push  [SP] <- RS1, RS2...RSN  str for sources
 //pop   RD1, RD2...RDN <- [SP]  ld for destinations
 //mem   "ascii", 10000, 0x100, 0b100  PC+=2
+//mem   mem 100                 //reserve 100 address for memory
 
 //flags
 //N
@@ -123,15 +124,18 @@ void stepThroughAndPrint(Intepreter &intepreter)
 int main(int argc, const char * argv[])
 {
     vector<string> code;
-    code.push_back("SP <- 0xF"); //set stack
+    code.push_back("SP <- 0xFF"); //set stack
     code.push_back("R0 <- 0 : AL");
     code.push_back("R1 <- 7");
     code.push_back("while");
-    code.push_back("R0 == 100");
+    code.push_back("R0 == 30");
+    code.push_back("B endWhile : GT");
     code.push_back("R0 <- R0 + R1");
     code.push_back("[SP] <- R0, R1");
-    code.push_back("R0, R1 <- [SP]");
+    code.push_back("R1, R0 <- [SP]");
     code.push_back("B while");
+    code.push_back("endWhile");
+
     
     Assembler assembler = Assembler(code);
     vector<int> byte_code = assembler.assemble();
